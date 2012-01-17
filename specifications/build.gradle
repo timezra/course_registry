@@ -20,8 +20,8 @@ dependencies {
 apply plugin: SauceConnect
 
 sauceConfig {
-	username = <username>
-	apiKey = <apiKey>
+	username = 'timezra'
+	apiKey = 'baff598a-e830-46ed-ae98-fc4485e0db3e'
 }
 
 test.dependsOn ':web:webStart', 'sauceConnect'

@@ -1,6 +1,6 @@
 This project demonstrates how to design a Grails 2.0 web application via a series of WebDriver-based Spock specifications that can be executed in multiple browsers on multiple OSes through Sauce Labs as long as you configure the Sauce Labs username and apiKey. 
 
-It is the companion source code for this tutorial: http://timezra.blogspot.com/2012/1/bdd-with-spock-and-selenium.html
+It is the companion source code for this tutorial: http://timezra.blogspot.com/2012/01/bdd-with-spock-and-selenium.html
 
 This project can be built from the project root using gradle (1.0-M7 as of this writing):
     $> gradle test
