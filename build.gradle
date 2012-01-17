@@ -1,0 +1,9 @@
+allprojects {
+   apply plugin: 'eclipse'
+   version = '1.0.0-SNAPSHOT'
+   group = 'timezra.course_registry'
+}
+
+subprojects {
+   sourceCompatibility = 1.6
+}

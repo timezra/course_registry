@@ -1,0 +1,7 @@
+/build
+/chromedriver.log
+/sauce_connect.log
+/.settings
+/.project
+/.classpath
+/.DS_Store

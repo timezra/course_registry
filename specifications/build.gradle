@@ -1,0 +1,96 @@
+import java.util.concurrent.Executors
+import java.util.concurrent.ExecutorService
+
+apply plugin: 'groovy'
+
+repositories {
+	mavenCentral()
+	mavenRepo url: "http://m2repo.spockframework.org/snapshots"
+	mavenRepo url: "https://repository-saucelabs.forge.cloudbees.com/release"
+}
+
+dependencies {
+	groovy group: 'org.codehaus.groovy', name: 'groovy', version: '1.8.5'
+	testCompile group: 'org.spockframework', name: 'spock-core', version: '0.6-groovy-1.8-SNAPSHOT'
+	testCompile group: 'org.seleniumhq.selenium', name: 'selenium-java', version: '2.16.1'
+	testCompile group: 'junit', name: 'junit', version: '4.10'
+	runtime group: 'com.saucelabs', name: 'sauce-connect', version: '3.0.18'
+}
+
+apply plugin: SauceConnect
+
+sauceConfig {
+	username = <username>
+	apiKey = <apiKey>
+}
+
+test.dependsOn ':web:webStart', 'sauceConnect'
+
+gradle.taskGraph.afterTask { Task task, TaskState state ->
+	if(':specifications:test'.equals(task.path)) {
+		tasks.getByPath('sauceDisconnect').execute()
+		project(':web').tasks.getByPath('webStop').execute()
+	}
+}
+
+class SauceConnect implements Plugin<Project> {
+	
+	ExecutorService executor = Executors.newFixedThreadPool(2)
+	
+    def void apply(Project project) {
+		project.extensions.sauceConfig = new SauceConnectExtension()
+		
+		project.task('sauceConnect') << {
+			
+			def output = new PipedOutputStream()
+			def input = new PipedInputStream(output)
+			def reader = new BufferedReader(new InputStreamReader(input))
+			
+			executor.execute {
+				println "Connecting to Sauce Labs as ${project.sauceConfig.username} with key ${project.sauceConfig.apiKey}...."
+				try {
+					project.javaexec {
+						main = 'com.saucelabs.sauceconnect.SauceConnect'
+						classpath = project.sourceSets.main.runtimeClasspath
+						args = [project.sauceConfig.username, project.sauceConfig.apiKey]
+						standardOutput = output
+					} 
+				} catch(Exception ignored) {
+					// Executor has been shutdown
+				}
+			}
+			boolean okToStart = false
+			executor.execute {
+				def nextLine
+				try {
+					while((nextLine = reader.readLine()) != null) {
+						println nextLine
+						if(!okToStart) {
+							if(nextLine =~ /Please wait for "You may start your tests" to start your tests/) {
+								continue
+							}
+							else if(nextLine =~ /You may start your tests/) {
+								okToStart = true
+							}
+						}
+					}
+				} catch(Exception ignored) {
+					// Executor has been shutdown
+				}
+			}
+			while(!okToStart) {
+				Thread.sleep 250
+			}
+		}
+		
+		project.task('sauceDisconnect') << {
+			println "Disconnecting from Sauce Labs...."
+			executor.shutdownNow()
+		}
+    }
+}
+
+class SauceConnectExtension {
+	String username
+	String apiKey
+}

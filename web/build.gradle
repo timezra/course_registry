@@ -1,0 +1,58 @@
+buildscript {
+	repositories {
+		mavenCentral()
+		mavenRepo url: 'https://repository.jboss.org/nexus/content/groups/public/'
+		mavenRepo url: 'http://repo.grails.org/grails/repo'
+	}
+
+	dependencies {
+		classpath group: 'org.grails', name: 'grails-gradle-plugin', version: '1.1.0'
+	}
+}
+
+apply plugin: 'jetty'
+
+def stopPort = 8001
+def safeWord = 'banana'
+
+task webStart(dependsOn: 'grails-war') << {
+	def jettyRunWar = tasks.getByPath('jettyRunWar')
+	jettyRunWar.webApp = new File(projectDir, "target/course_registry-${version}.war")
+	jettyRunWar.contextPath = 'course_registry'
+	jettyRunWar.daemon = true
+	jettyRunWar.stopPort = stopPort
+	jettyRunWar.stopKey = safeWord
+	jettyRunWar.execute()
+}
+
+task webStop << {
+	def jettyStop = tasks.getByPath('jettyStop')
+	jettyStop.stopPort = stopPort
+	jettyStop.stopKey = safeWord
+	jettyStop.execute()
+}
+
+grailsVersion = '2.0.0'
+apply plugin: 'grails'
+
+dependencies {
+	compile group: 'org.grails', name: 'grails-resources', version: grailsVersion
+	compile group: 'org.grails', name: 'grails-crud', version: grailsVersion
+	compile group: 'org.grails', name: 'grails-hibernate', version: grailsVersion
+	compile group: 'org.grails', name: 'grails-plugin-datasource', version: grailsVersion
+	runtime group: 'org.grails', name: 'grails-plugin-log4j', version: grailsVersion
+	runtime group: 'org.grails', name: 'grails-plugin-url-mappings', version: grailsVersion
+	runtime group: 'org.grails', name: 'grails-plugin-gsp', version: grailsVersion
+	runtime group: 'org.grails', name: 'grails-plugin-filters', version: grailsVersion
+	runtime group: 'org.grails', name: 'grails-plugin-scaffolding', version: grailsVersion
+	runtime group: 'org.grails', name: 'grails-plugin-services', version: grailsVersion
+	runtime group: 'org.grails', name: 'grails-plugin-servlets', version: grailsVersion
+	runtime group: 'com.h2database', name: 'h2', version: '1.3.163'
+	runtime group: 'net.sf.ehcache', name: 'ehcache-core', version: '2.4.6'
+}
+
+repositories {
+	mavenCentral()
+	mavenRepo url: 'https://repository.jboss.org/nexus/content/groups/public/'
+	mavenRepo url: 'http://repo.grails.org/grails/repo'
+}
